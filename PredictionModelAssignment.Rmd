@@ -1,0 +1,60 @@
+---
+title: "PredictionModelAssignment"
+author: "Pankaj Prasad"
+output: html_document
+---
+
+## Introduction
+
+The aim of the exercise is to predict the classe of the test data.
+
+## Base Data Download and Load
+
+Training and Test data is downloaded from the site provided in the assignment.  Once the data is downloaded, it is loaded into R.  Columns with NA values are removed from the set.
+
+
+
+```{r, eval = FALSE}
+destfile <- "./pml-training.csv"
+destfile2 <- "./pml-testing.csv"
+
+baseD <- read.csv(destfile,header=TRUE,na.strings=c("NA",""," "))
+baseDF <- read.csv(destfile2,header=TRUE,na.strings=c("NA",""," "))
+baseD <- baseD[, which(as.numeric(colSums(is.na(baseD)))==0)]
+
+
+```
+
+The data train data is then divided into training set and test set.  75% in train set and 25% in test set.
+
+```{r, eval = FALSE}
+library(caret); library(kernlab)
+baseTrain <- createDataPartition(y=baseD$classe,p=0.75,list=FALSE)
+
+bTraining <- baseD[baseTrain,]
+bTesting <- baseD[-baseTrain,]
+```
+
+Using Near Zero Var - columns are removed with nzv = True.  Also columns with high freq ratio are removed.
+
+```{r, eval = FALSE}
+nsv <- nearZeroVar(bTraining, saveMetrics=TRUE)
+nsv
+```
+
+Correlation is used to remove those predictors which are highly corelated to each other.  
+
+```{r, eval = FALSE}
+bCorr <- cor(bTrain2)
+hiCorr <- findCorrelation(bCorr,0.9)
+bTraining <- bTraining[,-hiCorr]
+```
+
+Again using Near Zero Var - columns with PercentUnique greater than 8 are selected as final predictors.  Method GBM is used to analyze classe with all the predictors.
+```{r, eval = FALSE}
+modFit2 <- train(classe ~ ., method = "gbm", data = bTraining)
+```
+
+## Conclusion
+
+The model is used to predict the test data.  Out of 20 cases 19 were predicted correctly using the model.
